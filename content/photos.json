@@ -1,39 +1,39 @@
 {
   "site": {
-    "logo": "https://www.silentvictorytc.com/img/logo.png"
+    "logo": "/img/uploads/logo.png"
   },
   "home": {
-    "hero": "https://www.silentvictorytc.com/img/facility.jpg",
-    "welcome": "https://www.silentvictorytc.com/img/people.jpg",
-    "schedule": "https://www.silentvictorytc.com/img/slides/Slide1.jpg",
-    "partners": "https://www.silentvictorytc.com/img/slides/Slide2.jpg",
-    "socials": "https://www.silentvictorytc.com/img/slides/social.jpg",
-    "wrestling": "https://www.silentvictorytc.com/img/wrestling.jpg",
-    "jiujitsu": "https://www.silentvictorytc.com/img/jiujitsu1.jpg",
-    "strength": "https://www.silentvictorytc.com/img/service2.png",
-    "mission": "https://www.silentvictorytc.com/img/jiujitsu1.jpg",
-    "apart": "https://www.silentvictorytc.com/img/teamshane.jpg",
-    "bottom": "https://www.silentvictorytc.com/img/wrestling.jpg"
+    "hero": "/img/uploads/facility.jpg",
+    "welcome": "/img/uploads/people.jpg",
+    "schedule": "/img/uploads/Slide1.jpg",
+    "partners": "/img/uploads/Slide2.jpg",
+    "socials": "/img/uploads/social.jpg",
+    "wrestling": "/img/uploads/wrestling.jpg",
+    "jiujitsu": "/img/uploads/jiujitsu1.jpg",
+    "strength": "/img/uploads/service2.png",
+    "mission": "/img/uploads/jiujitsu1.jpg",
+    "apart": "/img/uploads/teamshane.jpg",
+    "bottom": "/img/uploads/wrestling.jpg"
   },
   "about": {
-    "profile": "https://www.silentvictorytc.com/img/teamshane.jpg",
-    "partners": "https://www.silentvictorytc.com/img/slides/Slide2.jpg",
-    "team_shane": "https://www.silentvictorytc.com/img/teamshane.jpg"
+    "profile": "/img/uploads/teamshane.jpg",
+    "partners": "/img/uploads/Slide2.jpg",
+    "team_shane": "/img/uploads/teamshane.jpg"
   },
   "services": {
-    "hero": "https://www.silentvictorytc.com/img/service2.png",
-    "personalized": "https://www.silentvictorytc.com/img/training.jpg",
-    "wrestling": "https://www.silentvictorytc.com/img/wrestling.jpg",
-    "jiujitsu": "https://www.silentvictorytc.com/img/jiujitsu1.jpg",
-    "facilities": "https://www.silentvictorytc.com/img/facility.jpg",
-    "equipment": "https://www.silentvictorytc.com/img/service2.png",
-    "recovery": "https://www.silentvictorytc.com/img/recovery.jpg",
-    "bottom": "https://www.silentvictorytc.com/img/facility.jpg"
+    "hero": "/img/uploads/service2.png",
+    "personalized": "/img/uploads/training.jpg",
+    "wrestling": "/img/uploads/wrestling.jpg",
+    "jiujitsu": "/img/uploads/jiujitsu1.jpg",
+    "facilities": "/img/uploads/facility.jpg",
+    "equipment": "/img/uploads/service2.png",
+    "recovery": "/img/uploads/recovery.jpg",
+    "bottom": "/img/uploads/facility.jpg"
   },
   "contact": {
-    "hero": "https://www.silentvictorytc.com/img/wrestling.jpg"
+    "hero": "/img/uploads/wrestling.jpg"
   },
   "shop": {
-    "hero": "https://www.silentvictorytc.com/img/people.jpg"
+    "hero": "/img/uploads/people.jpg"
   }
 }
