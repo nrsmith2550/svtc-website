@@ -1,26 +1,37 @@
-# Silent Victory Training Center — UFC-style redesign
-Pages: index.html, about.html, services.html, contact.html, shop.html  (styles in css/style.css)
+# Silent Victory Training Center — IONOS (PHP) version
 
-All photos live in img/uploads/ in this repo (copied from the original site), so the site doesn't depend
-on silentvictorytc.com.
+This branch (`ionos-php`) is the self-hosted version of the site for regular IONOS web hosting.
+The live GitHub Pages site and its GitHub-based admin stay on the `main` branch and are not affected.
 
-The contact form opens the visitor's email app addressed to SilentVictory.Shane@gmail.com.
-To use a real form backend (Formspree, Netlify Forms, your old PHP handler), set the form's action.
+Same pages and design as `main`. The difference is the owner admin: logins, photo uploads and the
+Calendar link are handled by PHP on the IONOS server, and changes go live instantly. No GitHub needed.
 
-## Changing photos (owner admin)
-Every photo on the site is a named slot in `content/photos.json`; uploads are stored in `img/uploads/`.
+## Test it on IONOS (without touching the current site)
+1. Download `svtc-ionos-php.zip` (or this branch as a zip) and unzip it.
+2. In IONOS, open **Hosting → File Manager** (or connect with SFTP) and create a test folder,
+   e.g. `svtc-test`. Upload everything from the unzipped folder into it, including the
+   hidden `.htaccess` files in `content/`, `img/uploads/` and `private/`.
+3. Visit `https://YOUR-DOMAIN/svtc-test/admin/setup.php`. The **Server check** should be all green
+   (fix any red item using the hint under it), then create the owner username and password.
+4. Visit `https://YOUR-DOMAIN/svtc-test/private/admin-user.php`. You should see **403 Forbidden**.
+   That confirms the private folder is locked.
+5. Log in at `https://YOUR-DOMAIN/svtc-test/admin/` and try **Change image** and **Change Calendar Link**.
 
-**Admin mode (recommended):** the "Owner Login" link in the footer opens `admin/`. After logging in, every
-page shows an admin bar and a **Change image** button on each photo. The chosen picture is resized in the
-browser and committed to this repo (one commit per change); the live site updates in about a minute.
+When you're happy, the same files go into the main web folder for silentvictorytc.com
+(after the test, either re-upload fresh or move the test folder's contents, including `content/`,
+`img/uploads/` and `private/`, so the owner's changes and login come along).
 
-How the login works: `admin/setup.html` takes a fine-grained GitHub token (this repo only, Contents read/write)
-plus an owner username and password, encrypts the token in the browser (PBKDF2-SHA256 600k + AES-GCM), and
-saves only the encrypted copy to `content/admin-key.json`. Logging in decrypts it into the browser tab
-(sessionStorage) until logout. Re-run setup to change the password or when the token expires; deleting the
-token on GitHub disables the login immediately.
+## How the admin works
+- `admin/index.html` is the login page; `admin/api.php` handles login/logout, photo uploads and link changes.
+- `admin/setup.php` shows a server check and creates the owner login. Once a login exists, only a
+  logged-in owner can change it there.
+- The password is stored only as a one-way hash in `private/admin-user.php` (blocked from the web).
+- Security: session cookie (HttpOnly, SameSite=Strict, Secure on https), CSRF token on every change,
+  5 wrong tries locks that address for 15 minutes, uploads are re-encoded by the server (GD) and
+  resized to at most 2400px, and `img/uploads` can't run scripts.
+- Photo slots live in `content/photos.json`, links in `content/links.json`; `js/photos.js` applies them
+  for visitors and `js/admin.js` adds the admin buttons. Old photos are kept in `img/uploads/`, so any
+  earlier picture can be restored by uploading it again.
 
-**Calendar link:** in admin mode, use **Change Calendar Link** (admin bar) or any **Edit link** button next to a
-Calendar link. The address is saved to `content/links.json` and applied to every `a[data-link="calendar"]`.
-
-**Pages CMS (alternative):** the same photos can also be edited at https://app.pagescms.org (`.pages.yml`).
+## Requirements
+PHP 8.0+ with GD (standard on IONOS), and write access to `img/uploads`, `content` and `private`.

@@ -1,0 +1,4 @@
+private/admin-user.php
+private/login-attempts.json
+content/*.lock
+content/*.tmp-*

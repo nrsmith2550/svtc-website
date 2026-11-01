@@ -1,31 +1,15 @@
-/* Silent Victory owner admin.
-   - Login: username + password decrypt a GitHub access key (content/admin-key.json) that can only
-     edit this repo. The key is kept in this browser tab only (sessionStorage) until logout.
-   - Admin mode: every site photo gets a "Change image" button. The new picture is resized in the
-     browser and committed to the repo (img/uploads + content/photos.json) in one commit. */
+/* Silent Victory owner admin (IONOS / PHP version).
+   - Login: username + password checked by admin/api.php (PHP session cookie).
+   - Admin mode: every site photo gets a "Change image" button and the Calendar links get "Edit link".
+     Photos are resized in the browser, then re-checked and saved by the server into img/uploads. */
 (function () {
   "use strict";
   var S = (window.SVTC = window.SVTC || {});
-  S.REPO = "nrsmith2550/svtc-website";
-  S.BRANCH = "main";
-  S.API = "https://api.github.com";
-  S.KEY_PATH = "content/admin-key.json";
-  S.PHOTOS_PATH = "content/photos.json";
-  S.ITER = 600000;
   var SESSION = "svtc_admin";
-
-  /* ---------- small helpers ---------- */
-  function b64(buf) {
-    var bytes = new Uint8Array(buf), s = "";
-    for (var i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-    return btoa(s);
-  }
-  function unb64(str) {
-    var bin = atob(str.replace(/\s/g, "")), out = new Uint8Array(bin.length);
-    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-    return out;
-  }
-  S.b64 = b64; S.unb64 = unb64;
+  var me = document.currentScript && document.currentScript.src;
+  S.ROOT = me ? new URL("../", me).href : new URL("./", location.href).href;
+  S.API = S.ROOT + "admin/api.php";
+  S.LINK_LABELS = { calendar: "Calendar" };
 
   S.session = {
     get: function () { try { return sessionStorage.getItem(SESSION); } catch (e) { return null; } },
@@ -33,113 +17,35 @@
     clear: function () { try { sessionStorage.removeItem(SESSION); } catch (e) {} }
   };
 
-  /* ---------- crypto: username+password -> AES key that wraps the GitHub token ---------- */
-  function deriveKey(user, pass, salt, iter) {
-    var enc = new TextEncoder();
-    return crypto.subtle.importKey("raw", enc.encode(user.trim().toLowerCase() + "\n" + pass), "PBKDF2", false, ["deriveKey"])
-      .then(function (base) {
-        return crypto.subtle.deriveKey({ name: "PBKDF2", salt: salt, iterations: iter, hash: "SHA-256" },
-          base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
-      });
-  }
-  S.encryptToken = function (user, pass, token) {
-    var salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
-    return deriveKey(user, pass, salt, S.ITER).then(function (key) {
-      return crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, new TextEncoder().encode(token));
-    }).then(function (ct) {
-      return { v: 1, kdf: "PBKDF2-SHA256", iter: S.ITER, salt: b64(salt), iv: b64(iv), ct: b64(ct) };
-    });
-  };
-  S.decryptToken = function (user, pass, blob) {
-    return deriveKey(user, pass, unb64(blob.salt), blob.iter).then(function (key) {
-      return crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(blob.iv) }, key, unb64(blob.ct));
-    }).then(function (pt) { return new TextDecoder().decode(pt); });
-  };
-
-  /* ---------- GitHub API ---------- */
-  S.gh = function (token, path, opts) {
-    opts = opts || {};
-    var headers = { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
-    if (token) headers.Authorization = "Bearer " + token;
-    if (opts.body) headers["Content-Type"] = "application/json";
-    return fetch(S.API + path, { method: opts.method || "GET", headers: headers, cache: "no-store",
-      body: opts.body ? JSON.stringify(opts.body) : undefined })
-      .then(function (r) {
-        if (r.status === 204) return null;
-        return r.json().catch(function () { return {}; }).then(function (data) {
-          if (!r.ok) { var e = new Error((data && data.message) || ("GitHub error " + r.status)); e.status = r.status; throw e; }
-          return data;
+  /* ---------- PHP API ---------- */
+  S.api = function (action, form, csrf) {
+    var opts = { method: form ? "POST" : "GET", credentials: "same-origin", cache: "no-store", headers: {} };
+    if (form) opts.body = form;
+    if (csrf) opts.headers["X-CSRF-Token"] = csrf;
+    return fetch(S.API + "?action=" + action, opts).then(function (r) {
+      return r.json().catch(function () { return { ok: false, error: "The server sent an unexpected reply (" + r.status + ")." }; })
+        .then(function (d) {
+          if (!r.ok || !d.ok) { var e = new Error(d.error || ("Server error " + r.status)); e.status = r.status; throw e; }
+          return d;
         });
-      });
+    }, function () { var e = new Error("Couldn't reach the website server. Check your internet and try again."); e.status = 0; throw e; });
   };
-  function repoPath(p) { return "/repos/" + S.REPO + p; }
-
-  S.readJson = function (token, path, ref) {
-    return S.gh(token, repoPath("/contents/" + path + "?ref=" + encodeURIComponent(ref || S.BRANCH)))
-      .then(function (d) { return { sha: d.sha, data: JSON.parse(new TextDecoder().decode(unb64(d.content))) }; });
+  S.login = function (user, pass) {
+    var f = new FormData(); f.append("username", user); f.append("password", pass);
+    return S.api("login", f).then(function (d) { S.session.set(d.csrf); return d; });
   };
-
-  /* One commit that (optionally) adds a binary file and updates a JSON file via mutate(data).
-     Retries if someone else committed first. Resolves with the updated JSON. */
-  S.commitChanges = function (token, opts, message) {
-    var fileBlobSha;
-    function attempt(left) {
-      var commitSha, treeSha, data;
-      return S.gh(token, repoPath("/git/ref/heads/" + S.BRANCH)).then(function (ref) {
-        commitSha = ref.object.sha;
-        return S.gh(token, repoPath("/git/commits/" + commitSha));
-      }).then(function (c) {
-        treeSha = c.tree.sha;
-        return S.readJson(token, opts.json, commitSha).catch(function (e) {
-          if (e.status === 404) return { data: {} };
-          throw e;
-        });
-      }).then(function (j) {
-        data = j.data;
-        opts.mutate(data);
-        if (!opts.file || fileBlobSha) return null;
-        return opts.file.blob.arrayBuffer().then(function (buf) {
-          return S.gh(token, repoPath("/git/blobs"), { method: "POST", body: { content: b64(buf), encoding: "base64" } });
-        });
-      }).then(function (b) {
-        if (b) fileBlobSha = b.sha;
-        return S.gh(token, repoPath("/git/blobs"), { method: "POST",
-          body: { content: JSON.stringify(data, null, 2) + "\n", encoding: "utf-8" } });
-      }).then(function (jb) {
-        var tree = [{ path: opts.json, mode: "100644", type: "blob", sha: jb.sha }];
-        if (opts.file) tree.unshift({ path: opts.file.path, mode: "100644", type: "blob", sha: fileBlobSha });
-        return S.gh(token, repoPath("/git/trees"), { method: "POST", body: { base_tree: treeSha, tree: tree } });
-      }).then(function (t) {
-        return S.gh(token, repoPath("/git/commits"), { method: "POST", body: { message: message, tree: t.sha, parents: [commitSha] } });
-      }).then(function (c) {
-        return S.gh(token, repoPath("/git/refs/heads/" + S.BRANCH), { method: "PATCH", body: { sha: c.sha, force: false } });
-      }).then(function () { return data; }, function (e) {
-        if (left > 0 && (e.status === 409 || e.status === 422)) return attempt(left - 1);
-        throw e;
-      });
-    }
-    return attempt(3);
+  S.logout = function () { S.session.clear(); return S.api("logout", new FormData()).catch(function () {}); };
+  S.status = function () { return S.api("status"); };
+  S.readJson = function (path) {
+    return fetch(S.ROOT + path + "?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : {}; });
   };
-
-  S.commitPhoto = function (token, key, fileName, blob, message) {
-    var parts = key.split(".");
-    return S.commitChanges(token, {
-      file: { path: "img/uploads/" + fileName, blob: blob },
-      json: S.PHOTOS_PATH,
-      mutate: function (photos) {
-        photos[parts[0]] = photos[parts[0]] || {};
-        photos[parts[0]][parts[1]] = "/img/uploads/" + fileName;
-      }
-    }, message);
+  S.savePhoto = function (csrf, key, blob, ext) {
+    var f = new FormData(); f.append("slot", key); f.append("image", blob, "photo." + ext);
+    return S.api("photo", f, csrf);
   };
-
-  S.LINKS_PATH = "content/links.json";
-  S.LINK_LABELS = { calendar: "Calendar" };
-  S.commitLink = function (token, key, url) {
-    return S.commitChanges(token, {
-      json: S.LINKS_PATH,
-      mutate: function (links) { links[key] = url; }
-    }, "Change " + (S.LINK_LABELS[key] || key) + " link (via site admin)");
+  S.saveLink = function (csrf, key, url) {
+    var f = new FormData(); f.append("key", key); f.append("url", url);
+    return S.api("link", f, csrf);
   };
   S.normalizeUrl = function (raw) {
     var u = String(raw || "").trim();
@@ -150,11 +56,9 @@
     return p.href;
   };
 
-  /* ---------- image preparation: resize + compress in the browser ---------- */
+  /* ---------- image preparation: resize + compress in the browser (server re-checks) ---------- */
   function loadImage(file) {
-    if (window.createImageBitmap) {
-      return createImageBitmap(file).catch(function () { return viaImg(file); });
-    }
+    if (window.createImageBitmap) return createImageBitmap(file).catch(function () { return viaImg(file); });
     return viaImg(file);
   }
   function viaImg(file) {
@@ -178,16 +82,16 @@
       ctx.drawImage(img, 0, 0, c.width, c.height);
       return new Promise(function (res, rej) {
         c.toBlob(function (b) { b ? res(b) : rej(new Error("Couldn't process that picture.")); },
-          keepPng ? "image/png" : "image/jpeg", 0.85);
+          keepPng ? "image/png" : "image/jpeg", 0.88);
       }).then(function (blob) { return { blob: blob, ext: keepPng ? "png" : "jpg" }; });
     });
   };
 
   /* ---------- admin mode on the public pages ---------- */
-  function rawUrl(u) {
+  function siteUrl(u) {
     if (!u) return u;
-    var m = u.match(/^\/?(img\/uploads\/.+)$/);
-    return m ? "https://raw.githubusercontent.com/" + S.REPO + "/" + S.BRANCH + "/" + m[1] : u;
+    if (/^(https?:)?\/\//.test(u)) return u;
+    return S.ROOT + u.replace(/^\/+/, "");
   }
   function slotEls(key) {
     return document.querySelectorAll('[data-photo="' + key + '"],[data-photo-bg="' + key + '"]');
@@ -207,26 +111,23 @@
     t._h = setTimeout(function () { t.className = "svtc-toast " + (kind || ""); }, kind === "err" ? 9000 : 5000);
   }
   function friendly(e) {
-    if (e && e.status === 401) return "Your login has expired. Please log out and log in again.";
-    if (e && e.status === 403) return "This login isn't allowed to change the website. Please run admin setup again.";
-    if (e && e.status === 404) return "Couldn't reach the website files. Please run admin setup again.";
     return (e && e.message) || "Something went wrong. Please try again.";
   }
   function adminHref() {
     return /\/admin\/?$|\/admin\/[^/]*$/.test(location.pathname) ? "./" : "admin/";
   }
 
-  function startEditor(token) {
+  function startEditor(csrf) {
     var root = document.documentElement;
     root.classList.add("svtc-admin");
 
     var bar = document.createElement("div");
     bar.className = "admin-bar";
-    bar.innerHTML = '<div class="wrap"><b>Admin Mode</b><span>Click <em>Change image</em> on any photo to upload a new one. Changes go live in about a minute.</span>' +
+    bar.innerHTML = '<div class="wrap"><b>Admin Mode</b><span>Click <em>Change image</em> on any photo to upload a new one. Changes go live right away.</span>' +
       '<button type="button" class="admin-logout">Log out</button></div>';
     document.body.insertBefore(bar, document.body.firstChild);
     bar.querySelector(".admin-logout").addEventListener("click", function () {
-      S.session.clear(); location.reload();
+      S.logout().then(function () { location.reload(); });
     });
 
     var input = document.createElement("input");
@@ -257,11 +158,11 @@
     });
 
     // show the latest saved photos straight from the repo (the live site can lag ~1 min)
-    S.readJson(token, S.PHOTOS_PATH).then(function (j) {
-      Object.keys(j.data).forEach(function (g) {
-        Object.keys(j.data[g]).forEach(function (n) { setSlot(g + "." + n, rawUrl(j.data[g][n])); });
+    S.readJson("content/photos.json").then(function (data) {
+      Object.keys(data).forEach(function (g) {
+        Object.keys(data[g]).forEach(function (n) { setSlot(g + "." + n, siteUrl(data[g][n])); });
       });
-    }).catch(function (e) { if (e.status === 401) toast(friendly(e), "err"); });
+    }).catch(function () {});
 
     /* ----- editable links (Calendar) ----- */
     var links = {};
@@ -271,7 +172,7 @@
         if (u) a.href = u;
       });
     }
-    S.readJson(token, S.LINKS_PATH).then(function (j) { links = j.data || {}; applyLinks(); }).catch(function () {});
+    S.readJson("content/links.json").then(function (d) { links = d || {}; applyLinks(); }).catch(function () {});
 
     var modal = document.createElement("div");
     modal.className = "svtc-modal";
@@ -310,9 +211,9 @@
       var u = S.normalizeUrl(mInput.value), key = linkKey;
       if (!u) { mErr.textContent = "That doesn't look like a web address. It should look like https://..."; mErr.hidden = false; return; }
       mErr.hidden = true; mSave.disabled = true; mSave.textContent = "Saving...";
-      S.commitLink(token, key, u).then(function (data) {
-        links = data; applyLinks(); closeModal();
-        toast("Saved! The " + (S.LINK_LABELS[key] || key) + " button now opens the new link (live site updates in about a minute).", "ok");
+      S.saveLink(csrf, key, u).then(function (d) {
+        links = d.links || links; applyLinks(); closeModal();
+        toast("Saved! The " + (S.LINK_LABELS[key] || key) + " button now opens the new link.", "ok");
       }).catch(function (err) {
         mErr.textContent = friendly(err); mErr.hidden = false; mSave.disabled = false; mSave.textContent = "Save Link";
       });
@@ -343,11 +244,9 @@
       buttonsFor(key).forEach(function (b) { b.classList.add("saving"); b.querySelector("span").textContent = "Saving..."; });
       var keepPng = key === "site.logo";
       S.prepareImage(file, keepPng).then(function (img) {
-        var name = key.replace(".", "-") + "-" + Date.now() + "." + img.ext;
-        var preview = URL.createObjectURL(img.blob);
-        return S.commitPhoto(token, key, name, img.blob, "Change photo: " + key + " (via site admin)").then(function () {
-          setSlot(key, preview);
-          toast("Saved! The live website will show the new photo in about a minute.", "ok");
+        return S.savePhoto(csrf, key, img.blob, img.ext).then(function (d) {
+          setSlot(key, siteUrl(d.url));
+          toast("Saved! The new photo is live on the website.", "ok");
         });
       }).catch(function (e) {
         toast(friendly(e), "err");
@@ -362,8 +261,12 @@
   function init() {
     if (document.body.hasAttribute("data-admin-page")) return;
     if (document.documentElement.classList.contains("svtc-admin")) return;
-    var t = S.session.get();
-    if (t) startEditor(t);
+    if (!S.session.get()) return;
+    // confirm the server session is still valid before showing admin tools
+    S.status().then(function (d) {
+      if (d.loggedIn && d.csrf) { S.session.set(d.csrf); startEditor(d.csrf); }
+      else { S.session.clear(); location.reload(); }
+    }).catch(function () {});
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();

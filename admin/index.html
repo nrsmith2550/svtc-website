@@ -26,32 +26,22 @@
     <div class="field"><label for="pass">Password</label><input id="pass" name="password" type="password" autocomplete="current-password" required></div>
     <button class="btn" type="submit" id="go">Log In <span class="arr">&rarr;</span></button>
     <p class="admin-small" id="loggedin" hidden>You're already logged in. <a href="../index.html">Open admin mode &rarr;</a></p>
-    <p class="admin-small">First time? <a href="setup.html">Set up the owner login</a>.</p>
+    <p class="admin-small">First time, or need to change the password? <a href="setup.php">Admin setup</a>.</p>
   </form>
 </div></section>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   var S = window.SVTC, f = document.getElementById("login"), err = document.getElementById("err"), go = document.getElementById("go");
-  if (S.session.get()) document.getElementById("loggedin").hidden = false;
+  S.status().then(function (d) {
+    if (d.loggedIn) { S.session.set(d.csrf); document.getElementById("loggedin").hidden = false; }
+    if (!d.setup) { err.innerHTML = 'The owner login hasn\'t been set up yet. <a href="setup.php">Set it up &rarr;</a>'; err.style.display = "block"; }
+  }).catch(function (e) { err.textContent = e.message; err.style.display = "block"; });
   function fail(msg) { err.textContent = msg; err.style.display = "block"; go.disabled = false; go.firstChild.textContent = "Log In "; }
   f.addEventListener("submit", function (e) {
     e.preventDefault();
     err.style.display = "none"; go.disabled = true; go.firstChild.textContent = "Checking... ";
-    var user = document.getElementById("user").value, pass = document.getElementById("pass").value;
-    S.gh(null, "/repos/" + S.REPO + "/contents/" + S.KEY_PATH + "?ref=" + S.BRANCH)
-      .then(function (d) { return JSON.parse(new TextDecoder().decode(S.unb64(d.content))); })
-      .catch(function (e) {
-        throw new Error(e.status === 404 ? "The owner login hasn't been set up yet. Use the setup link below." : "Couldn't reach the login service. Check your internet and try again.");
-      })
-      .then(function (blob) {
-        return S.decryptToken(user, pass, blob).catch(function () { throw new Error("Wrong username or password."); });
-      })
-      .then(function (token) {
-        return S.gh(token, "/repos/" + S.REPO).then(function () { return token; }, function (e) {
-          throw new Error(e.status === 401 ? "Your login key has expired. Please run setup again to renew it." : "Login worked, but the website files couldn't be reached. Please try again.");
-        });
-      })
-      .then(function (token) { S.session.set(token); location.href = "../index.html"; })
+    S.login(document.getElementById("user").value, document.getElementById("pass").value)
+      .then(function () { location.href = "../index.html"; })
       .catch(function (e) { fail(e.message); });
   });
 });
