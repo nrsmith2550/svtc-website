@@ -1,0 +1,13 @@
+{
+  // GitHub Codespaces: private PHP test server for the IONOS version of the site.
+  // Opens automatically at a private https address only you can reach.
+  "name": "Silent Victory (PHP test)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "postCreateCommand": "sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq php-cli php-gd > /dev/null && php -v | head -1",
+  "postAttachCommand": "echo 'Silent Victory PHP test server running on port 8080 (keep this terminal open)' && php -d upload_max_filesize=16M -d post_max_size=20M -S 0.0.0.0:8080 -t .",
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": { "label": "Silent Victory (PHP test)", "onAutoForward": "openBrowser" }
+  },
+  "hostRequirements": { "cpus": 2 }
+}

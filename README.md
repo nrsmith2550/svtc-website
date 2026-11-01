@@ -21,6 +21,15 @@ When you're happy, the same files go into the main web folder for silentvictoryt
 (after the test, either re-upload fresh or move the test folder's contents, including `content/`,
 `img/uploads/` and `private/`, so the owner's changes and login come along).
 
+## Test it on GitHub Codespaces (no IONOS needed)
+1. On GitHub, open this repo, switch to the `ionos-php` branch, then **Code → Codespaces → Create codespace on ionos-php**.
+2. Wait for setup (about a minute the first time). The site opens in a new tab at a private address
+   that only you can open. If it doesn't, open the **Ports** tab and click the globe next to port 8080.
+3. Go to `/admin/setup.php` on that address to create a test login, then `/admin/` to log in and try it.
+4. When finished, stop or delete the codespace (github.com/codespaces). Nothing there affects the live site.
+Note: Codespaces uses PHP's built-in server, which ignores `.htaccess`, so the private-folder 403 check
+only applies on IONOS.
+
 ## How the admin works
 - `admin/index.html` is the login page; `admin/api.php` handles login/logout, photo uploads and link changes.
 - `admin/setup.php` shows a server check and creates the owner login. Once a login exists, only a
