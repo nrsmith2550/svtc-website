@@ -9,6 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<script>document.documentElement.classList.add("ph-wait");setTimeout(function(){document.documentElement.classList.remove("ph-wait")},1500)</script>
+<script src="js/photos.js" defer></script>
 </head>
 <body>
 <div class="utility"><div class="wrap">
@@ -16,14 +18,14 @@
   <div class="u-right"><a href="https://www.instagram.com/p/DEXXyOXsv8e/" target="_blank" rel="noopener">Calendar</a><a href="https://www.facebook.com/SilentVictoryTrainingCenter/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.8c0-.9.3-1.5 1.6-1.5h1.7V4.4c-.3 0-1.3-.1-2.5-.1-2.4 0-4.1 1.5-4.1 4.2v2.3H7.5V14h2.7v8h3.3z"/></svg></a><a href="https://www.x.com/silent_victory/" target="_blank" rel="noopener" aria-label="X"><svg viewBox="0 0 24 24"><path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.2-8.3L2 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg></a><a href="https://www.instagram.com/silentvictorytc/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 7.2A4.8 4.8 0 1 0 12 16.8 4.8 4.8 0 0 0 12 7.2zm0 7.9a3.1 3.1 0 1 1 0-6.2 3.1 3.1 0 0 1 0 6.2zM17 5.8a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2zM21.9 7.9c-.1-1.5-.4-2.9-1.5-4-1.1-1.1-2.5-1.4-4-1.5C14.8 2.3 9.2 2.3 7.6 2.4c-1.5.1-2.9.4-4 1.5-1.1 1.1-1.4 2.5-1.5 4-.1 1.6-.1 6.6 0 8.2.1 1.5.4 2.9 1.5 4 1.1 1.1 2.5 1.4 4 1.5 1.6.1 7.2.1 8.8 0 1.5-.1 2.9-.4 4-1.5 1.1-1.1 1.4-2.5 1.5-4 .1-1.6.1-6.6 0-8.2zM19.8 18c-.3.8-1 1.5-1.8 1.8-1.3.5-4.3.4-5.9.4s-4.6.1-5.9-.4c-.8-.3-1.5-1-1.8-1.8-.5-1.3-.4-4.3-.4-5.9s-.1-4.6.4-5.9c.3-.8 1-1.5 1.8-1.8 1.3-.5 4.3-.4 5.9-.4s4.6-.1 5.9.4c.8.3 1.5 1 1.8 1.8.5 1.3.4 4.3.4 5.9s.1 4.6-.4 5.9z"/></svg></a></div>
 </div></div>
 <header class="nav"><div class="wrap">
-  <a class="brand" href="index.html"><img src="https://www.silentvictorytc.com/img/logo.png" alt="Silent Victory Training Center logo"><span>Silent Victory<small>Training Center</small></span></a>
+  <a class="brand" href="index.html"><img data-photo="site.logo" src="https://www.silentvictorytc.com/img/logo.png" alt="Silent Victory Training Center logo"><span>Silent Victory<small>Training Center</small></span></a>
   <ul class="menu" id="menu"><li><a href="index.html" class=active>Home</a></li><li><a href="about.html">About Us</a></li><li><a href="services.html">Services</a></li><li><a href="contact.html">Contact</a></li><li><a href="shop.html">Shop</a></li></ul>
   <a class="btn sm nav-cta" href="contact.html">Free First Class</a>
   <button class="burger" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('open')"><span></span></button>
 </div></header>
 <main>
 
-<section class="hero" style="background-image:url('https://www.silentvictorytc.com/img/facility.jpg')">
+<section data-photo-bg="home.hero" class="hero" style="background-image:url('https://www.silentvictorytc.com/img/facility.jpg')">
   <div class="wrap">
     <div class="eyebrow">Est. 2013 · Pittsburgh, PA</div>
     <h1>Welcome to <em>Silent Victory</em> Training Center</h1>
@@ -40,7 +42,7 @@
 </div></div>
 
 <section class="block"><div class="wrap split">
-  <div class="media"><img src="https://www.silentvictorytc.com/img/people.jpg" alt="Silent Victory athlete wearing a Work Hard in Silence shirt" style="aspect-ratio:350/435"><div class="tag">Work Hard in Silence</div></div>
+  <div class="media"><img data-photo="home.welcome" src="https://www.silentvictorytc.com/img/people.jpg" alt="Silent Victory athlete wearing a Work Hard in Silence shirt" style="aspect-ratio:350/435"><div class="tag">Work Hard in Silence</div></div>
   <div class="prose">
     <div class="eyebrow">Silent Victory Training Center</div>
     <h3 class="title" style="margin-top:14px;font-size:48px">Welcome to Silent Victory Training Center</h3>
@@ -53,23 +55,23 @@
 <section class="block dark"><div class="wrap">
   <div class="sec-head"><h2>What's Happening</h2><a class="more" href="https://www.instagram.com/silentvictorytc/" target="_blank" rel="noopener">Follow on Instagram &rarr;</a></div>
   <div class="promo-rail">
-    <a class="promo" href="https://www.instagram.com/p/DEXXyOXsv8e/" target="_blank" rel="noopener"><img src="https://www.silentvictorytc.com/img/slides/Slide1.jpg" alt="This month's schedule"><div class="meta"><b>This Month's Schedule</b><span>Calendar &rarr;</span></div></a>
-    <a class="promo" href="https://www.instagram.com/silentvictorytc/" target="_blank" rel="noopener"><img src="https://www.silentvictorytc.com/img/slides/Slide2.jpg" alt="HighGround and Mat Factory"><div class="meta"><b>HighGround &amp; Mat Factory</b><span>Partners &rarr;</span></div></a>
-    <a class="promo" href="https://www.facebook.com/SilentVictoryTrainingCenter/" target="_blank" rel="noopener"><img src="https://www.silentvictorytc.com/img/slides/social.jpg" alt="Follow Silent Victory on social media"><div class="meta"><b>Follow Our Socials</b><span>News &rarr;</span></div></a>
+    <a class="promo" href="https://www.instagram.com/p/DEXXyOXsv8e/" target="_blank" rel="noopener"><img data-photo="home.schedule" src="https://www.silentvictorytc.com/img/slides/Slide1.jpg" alt="This month's schedule"><div class="meta"><b>This Month's Schedule</b><span>Calendar &rarr;</span></div></a>
+    <a class="promo" href="https://www.instagram.com/silentvictorytc/" target="_blank" rel="noopener"><img data-photo="home.partners" src="https://www.silentvictorytc.com/img/slides/Slide2.jpg" alt="HighGround and Mat Factory"><div class="meta"><b>HighGround &amp; Mat Factory</b><span>Partners &rarr;</span></div></a>
+    <a class="promo" href="https://www.facebook.com/SilentVictoryTrainingCenter/" target="_blank" rel="noopener"><img data-photo="home.socials" src="https://www.silentvictorytc.com/img/slides/social.jpg" alt="Follow Silent Victory on social media"><div class="meta"><b>Follow Our Socials</b><span>News &rarr;</span></div></a>
   </div>
 </div></section>
 
 <section class="block panel"><div class="wrap">
   <div class="sec-head"><h2>Programs</h2><a class="more" href="services.html">All Services &rarr;</a></div>
   <div class="cards">
-    <a class="card" href="services.html#wrestling"><div class="img"><img src="https://www.silentvictorytc.com/img/wrestling.jpg" alt="Wrestling training"><span class="cat">Program</span></div><div class="body"><h3>Wrestling</h3><p>Technique, strategy and mental toughness for beginners through advanced wrestlers.</p><span class="link">Learn More &rarr;</span></div></a>
-    <a class="card" href="services.html#jiu-jitsu"><div class="img"><img src="https://www.silentvictorytc.com/img/jiujitsu1.jpg" alt="Jiu-Jitsu class"><span class="cat">Program</span></div><div class="body"><h3>Jiu-Jitsu</h3><p>Technique, leverage and control on the ground and in submission grappling.</p><span class="link">Learn More &rarr;</span></div></a>
-    <a class="card" href="services.html#personalized-training"><div class="img"><img src="https://www.silentvictorytc.com/img/service2.png" alt="Athlete pushing a sled"><span class="cat">Program</span></div><div class="body"><h3>Strength Training</h3><p>Build power, endurance and overall fitness with progressive, technique-first coaching.</p><span class="link">Learn More &rarr;</span></div></a>
+    <a class="card" href="services.html#wrestling"><div class="img"><img data-photo="home.wrestling" src="https://www.silentvictorytc.com/img/wrestling.jpg" alt="Wrestling training"><span class="cat">Program</span></div><div class="body"><h3>Wrestling</h3><p>Technique, strategy and mental toughness for beginners through advanced wrestlers.</p><span class="link">Learn More &rarr;</span></div></a>
+    <a class="card" href="services.html#jiu-jitsu"><div class="img"><img data-photo="home.jiujitsu" src="https://www.silentvictorytc.com/img/jiujitsu1.jpg" alt="Jiu-Jitsu class"><span class="cat">Program</span></div><div class="body"><h3>Jiu-Jitsu</h3><p>Technique, leverage and control on the ground and in submission grappling.</p><span class="link">Learn More &rarr;</span></div></a>
+    <a class="card" href="services.html#personalized-training"><div class="img"><img data-photo="home.strength" src="https://www.silentvictorytc.com/img/service2.png" alt="Athlete pushing a sled"><span class="cat">Program</span></div><div class="body"><h3>Strength Training</h3><p>Build power, endurance and overall fitness with progressive, technique-first coaching.</p><span class="link">Learn More &rarr;</span></div></a>
   </div>
 </div></section>
 
 <section class="block dark"><div class="wrap split rev">
-  <div class="media"><img src="https://www.silentvictorytc.com/img/jiujitsu1.jpg" alt="Athletes training on the mats at Silent Victory"><div class="tag">Our Mission</div></div>
+  <div class="media"><img data-photo="home.mission" src="https://www.silentvictorytc.com/img/jiujitsu1.jpg" alt="Athletes training on the mats at Silent Victory"><div class="tag">Our Mission</div></div>
   <div class="prose">
     <div class="eyebrow">Why We Train</div>
     <h3 class="title" style="margin-top:14px;font-size:56px">Our Mission</h3>
@@ -96,7 +98,7 @@
 </div></section>
 
 <section class="block dark"><div class="wrap split">
-  <div class="media"><img src="https://www.silentvictorytc.com/img/teamshane.jpg" alt="Coach Shane Valko" style="aspect-ratio:4/5;object-position:top"><div class="tag">Coach Shane Valko</div></div>
+  <div class="media"><img data-photo="home.apart" src="https://www.silentvictorytc.com/img/teamshane.jpg" alt="Coach Shane Valko" style="aspect-ratio:4/5;object-position:top"><div class="tag">Coach Shane Valko</div></div>
   <div>
     <div class="eyebrow">What sets us apart?</div>
     <h3 class="title" style="margin:14px 0 30px;font-size:56px;color:#fff">What Sets Us Apart?</h3>
@@ -106,7 +108,7 @@
   </div>
 </div></section>
 
-<section class="cta-band" style="background-image:url('https://www.silentvictorytc.com/img/wrestling.jpg')"><div class="wrap">
+<section data-photo-bg="home.bottom" class="cta-band" style="background-image:url('https://www.silentvictorytc.com/img/wrestling.jpg')"><div class="wrap">
   <div class="eyebrow" style="justify-content:center">Your First Class Is Free</div>
   <h2 style="margin-top:16px">Work Hard in Silence.<br><em>Let Success Make the Noise.</em></h2>
   <p>Visit us at 3243 Old Frankstown Rd, Pittsburgh, PA 15239 or call (814) 322-7129.</p>
@@ -117,7 +119,7 @@
 <footer class="footer">
   <div class="wrap cols">
     <div>
-      <img class="flogo" src="https://www.silentvictorytc.com/img/logo.png" alt="Silent Victory logo">
+      <img data-photo="site.logo" class="flogo" src="https://www.silentvictorytc.com/img/logo.png" alt="Silent Victory logo">
       <p>Wrestling · Jiu-Jitsu · Strength Training</p>
     </div>
     <div>
@@ -134,7 +136,7 @@
       <div class="socials"><a href="https://www.facebook.com/SilentVictoryTrainingCenter/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.8c0-.9.3-1.5 1.6-1.5h1.7V4.4c-.3 0-1.3-.1-2.5-.1-2.4 0-4.1 1.5-4.1 4.2v2.3H7.5V14h2.7v8h3.3z"/></svg></a><a href="https://www.x.com/silent_victory/" target="_blank" rel="noopener" aria-label="X"><svg viewBox="0 0 24 24"><path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.2-8.3L2 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg></a><a href="https://www.instagram.com/silentvictorytc/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 7.2A4.8 4.8 0 1 0 12 16.8 4.8 4.8 0 0 0 12 7.2zm0 7.9a3.1 3.1 0 1 1 0-6.2 3.1 3.1 0 0 1 0 6.2zM17 5.8a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2zM21.9 7.9c-.1-1.5-.4-2.9-1.5-4-1.1-1.1-2.5-1.4-4-1.5C14.8 2.3 9.2 2.3 7.6 2.4c-1.5.1-2.9.4-4 1.5-1.1 1.1-1.4 2.5-1.5 4-.1 1.6-.1 6.6 0 8.2.1 1.5.4 2.9 1.5 4 1.1 1.1 2.5 1.4 4 1.5 1.6.1 7.2.1 8.8 0 1.5-.1 2.9-.4 4-1.5 1.1-1.1 1.4-2.5 1.5-4 .1-1.6.1-6.6 0-8.2zM19.8 18c-.3.8-1 1.5-1.8 1.8-1.3.5-4.3.4-5.9.4s-4.6.1-5.9-.4c-.8-.3-1.5-1-1.8-1.8-.5-1.3-.4-4.3-.4-5.9s-.1-4.6.4-5.9c.3-.8 1-1.5 1.8-1.8 1.3-.5 4.3-.4 5.9-.4s4.6-.1 5.9.4c.8.3 1.5 1 1.8 1.8.5 1.3.4 4.3.4 5.9s.1 4.6-.4 5.9z"/></svg></a></div>
     </div>
   </div>
-  <div class="legal"><div class="wrap"><span>&copy; Silent Victory Training Center <span id="yr">2024</span>. All rights reserved.</span><span>Work hard in silence. Let success make the noise.</span></div></div>
+  <div class="legal"><div class="wrap"><span>&copy; Silent Victory Training Center <span id="yr">2024</span>. All rights reserved.</span><span>Work hard in silence. Let success make the noise. &nbsp;·&nbsp; <a href="admin/">Owner Login</a></span></div></div>
 </footer>
 <a class="totop" id="totop" href="#" aria-label="Back to top">&#9650;</a>
 <script>

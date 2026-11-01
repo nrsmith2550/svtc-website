@@ -1,0 +1,39 @@
+{
+  "site": {
+    "logo": "https://www.silentvictorytc.com/img/logo.png"
+  },
+  "home": {
+    "hero": "https://www.silentvictorytc.com/img/facility.jpg",
+    "welcome": "https://www.silentvictorytc.com/img/people.jpg",
+    "schedule": "https://www.silentvictorytc.com/img/slides/Slide1.jpg",
+    "partners": "https://www.silentvictorytc.com/img/slides/Slide2.jpg",
+    "socials": "https://www.silentvictorytc.com/img/slides/social.jpg",
+    "wrestling": "https://www.silentvictorytc.com/img/wrestling.jpg",
+    "jiujitsu": "https://www.silentvictorytc.com/img/jiujitsu1.jpg",
+    "strength": "https://www.silentvictorytc.com/img/service2.png",
+    "mission": "https://www.silentvictorytc.com/img/jiujitsu1.jpg",
+    "apart": "https://www.silentvictorytc.com/img/teamshane.jpg",
+    "bottom": "https://www.silentvictorytc.com/img/wrestling.jpg"
+  },
+  "about": {
+    "profile": "https://www.silentvictorytc.com/img/teamshane.jpg",
+    "partners": "https://www.silentvictorytc.com/img/slides/Slide2.jpg",
+    "team_shane": "https://www.silentvictorytc.com/img/teamshane.jpg"
+  },
+  "services": {
+    "hero": "https://www.silentvictorytc.com/img/service2.png",
+    "personalized": "https://www.silentvictorytc.com/img/training.jpg",
+    "wrestling": "https://www.silentvictorytc.com/img/wrestling.jpg",
+    "jiujitsu": "https://www.silentvictorytc.com/img/jiujitsu1.jpg",
+    "facilities": "https://www.silentvictorytc.com/img/facility.jpg",
+    "equipment": "https://www.silentvictorytc.com/img/service2.png",
+    "recovery": "https://www.silentvictorytc.com/img/recovery.jpg",
+    "bottom": "https://www.silentvictorytc.com/img/facility.jpg"
+  },
+  "contact": {
+    "hero": "https://www.silentvictorytc.com/img/wrestling.jpg"
+  },
+  "shop": {
+    "hero": "https://www.silentvictorytc.com/img/people.jpg"
+  }
+}

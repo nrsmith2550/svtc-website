@@ -1,0 +1,112 @@
+# Pages CMS configuration: https://pagescms.org
+# The owner signs in at https://app.pagescms.org to change site photos.
+media:
+  input: img/uploads
+  output: /img/uploads
+  categories: [image]
+content:
+  - name: photos
+    label: Website Photos
+    type: file
+    path: content/photos.json
+    format: json
+    fields:
+      - name: site
+        label: Whole site
+        type: object
+        fields:
+          - name: logo
+            label: "Logo (header, footer and Shop page)"
+            type: image
+      - name: home
+        label: Home page
+        type: object
+        fields:
+          - name: hero
+            label: "Top banner"
+            type: image
+          - name: welcome
+            label: "Welcome section photo"
+            type: image
+          - name: schedule
+            label: "What's Happening: schedule banner"
+            type: image
+          - name: partners
+            label: "What's Happening: partners banner"
+            type: image
+          - name: socials
+            label: "What's Happening: socials banner"
+            type: image
+          - name: wrestling
+            label: "Programs: Wrestling card"
+            type: image
+          - name: jiujitsu
+            label: "Programs: Jiu-Jitsu card"
+            type: image
+          - name: strength
+            label: "Programs: Strength Training card"
+            type: image
+          - name: mission
+            label: "Our Mission photo"
+            type: image
+          - name: apart
+            label: "What Sets Us Apart photo"
+            type: image
+          - name: bottom
+            label: "Bottom banner"
+            type: image
+      - name: about
+        label: About Us page
+        type: object
+        fields:
+          - name: profile
+            label: "Shane profile photo (top)"
+            type: image
+          - name: partners
+            label: "Partners banner"
+            type: image
+          - name: team_shane
+            label: "Our Team: Shane Valko"
+            type: image
+      - name: services
+        label: Services page
+        type: object
+        fields:
+          - name: hero
+            label: "Top banner"
+            type: image
+          - name: personalized
+            label: "Personalized Training"
+            type: image
+          - name: wrestling
+            label: "Wrestling"
+            type: image
+          - name: jiujitsu
+            label: "Jiu Jitsu"
+            type: image
+          - name: facilities
+            label: "Wrestling Facilities"
+            type: image
+          - name: equipment
+            label: "State of the Art Equipment"
+            type: image
+          - name: recovery
+            label: "Recovery"
+            type: image
+          - name: bottom
+            label: "Bottom banner"
+            type: image
+      - name: contact
+        label: Contact page
+        type: object
+        fields:
+          - name: hero
+            label: "Top banner"
+            type: image
+      - name: shop
+        label: Shop page
+        type: object
+        fields:
+          - name: hero
+            label: "Top banner"
+            type: image

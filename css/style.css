@@ -293,3 +293,15 @@ h3.title{font:800 34px/1 var(--display);text-transform:uppercase;margin-bottom:1
   .brand span{display:none}
   .record b{font-size:44px}
 }
+
+/* Photo swapping (js/photos.js): hide default photos briefly so they don't flash before the owner's picks load */
+html.ph-wait img[data-photo]{visibility:hidden}
+html.ph-wait [data-photo-bg]{background-image:none!important}
+
+/* Owner admin page */
+.admin-box{max-width:640px;margin:0 auto;background:#000;color:#fff;padding:48px 44px;border-top:6px solid var(--gold)}
+.admin-box h1{font:800 56px/.9 var(--display);text-transform:uppercase;margin:14px 0 18px}
+.admin-box p{color:#cfcfcf;margin-bottom:16px}
+.admin-box ol{color:#cfcfcf;margin:6px 0 26px 20px}
+.admin-box li{margin-bottom:10px}
+.admin-box b{color:#fff}
