@@ -33,4 +33,16 @@
     })
     .catch(function () {})
     .then(done);
+
+  // Editable links (e.g. the Calendar link), set by the owner in admin mode: content/links.json
+  fetch("content/links.json", { cache: "no-cache" })
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (links) {
+      try { if (sessionStorage.getItem("svtc_admin")) return; } catch (e) {}
+      document.querySelectorAll("a[data-link]").forEach(function (a) {
+        var u = links[a.getAttribute("data-link")];
+        if (u && /^https?:\/\//i.test(u)) a.href = u;
+      });
+    })
+    .catch(function () {});
 })();

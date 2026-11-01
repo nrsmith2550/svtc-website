@@ -20,4 +20,7 @@ saves only the encrypted copy to `content/admin-key.json`. Logging in decrypts i
 (sessionStorage) until logout. Re-run setup to change the password or when the token expires; deleting the
 token on GitHub disables the login immediately.
 
+**Calendar link:** in admin mode, use **Change Calendar Link** (admin bar) or any **Edit link** button next to a
+Calendar link. The address is saved to `content/links.json` and applied to every `a[data-link="calendar"]`.
+
 **Pages CMS (alternative):** the same photos can also be edited at https://app.pagescms.org (`.pages.yml`).

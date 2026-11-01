@@ -110,3 +110,12 @@ content:
           - name: hero
             label: "Top banner"
             type: image
+  - name: links
+    label: Website Links
+    type: file
+    path: content/links.json
+    format: json
+    fields:
+      - name: calendar
+        label: "Calendar link (top bar, footer and Home page schedule banner)"
+        type: string

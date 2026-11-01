@@ -79,44 +79,75 @@
       .then(function (d) { return { sha: d.sha, data: JSON.parse(new TextDecoder().decode(unb64(d.content))) }; });
   };
 
-  /* One commit that adds files and rewrites content/photos.json. Retries if someone else committed first. */
-  S.commitPhoto = function (token, key, fileName, blob, message) {
-    var imgBlobSha;
+  /* One commit that (optionally) adds a binary file and updates a JSON file via mutate(data).
+     Retries if someone else committed first. Resolves with the updated JSON. */
+  S.commitChanges = function (token, opts, message) {
+    var fileBlobSha;
     function attempt(left) {
-      var commitSha, treeSha, photos;
+      var commitSha, treeSha, data;
       return S.gh(token, repoPath("/git/ref/heads/" + S.BRANCH)).then(function (ref) {
         commitSha = ref.object.sha;
         return S.gh(token, repoPath("/git/commits/" + commitSha));
       }).then(function (c) {
         treeSha = c.tree.sha;
-        return S.readJson(token, S.PHOTOS_PATH, commitSha);
+        return S.readJson(token, opts.json, commitSha).catch(function (e) {
+          if (e.status === 404) return { data: {} };
+          throw e;
+        });
       }).then(function (j) {
-        photos = j.data;
-        var parts = key.split(".");
-        photos[parts[0]] = photos[parts[0]] || {};
-        photos[parts[0]][parts[1]] = "/img/uploads/" + fileName;
-        if (imgBlobSha) return { sha: imgBlobSha };
-        return blob.arrayBuffer().then(function (buf) {
+        data = j.data;
+        opts.mutate(data);
+        if (!opts.file || fileBlobSha) return null;
+        return opts.file.blob.arrayBuffer().then(function (buf) {
           return S.gh(token, repoPath("/git/blobs"), { method: "POST", body: { content: b64(buf), encoding: "base64" } });
         });
       }).then(function (b) {
-        imgBlobSha = b.sha;
+        if (b) fileBlobSha = b.sha;
         return S.gh(token, repoPath("/git/blobs"), { method: "POST",
-          body: { content: JSON.stringify(photos, null, 2) + "\n", encoding: "utf-8" } });
+          body: { content: JSON.stringify(data, null, 2) + "\n", encoding: "utf-8" } });
       }).then(function (jb) {
-        return S.gh(token, repoPath("/git/trees"), { method: "POST", body: { base_tree: treeSha, tree: [
-          { path: "img/uploads/" + fileName, mode: "100644", type: "blob", sha: imgBlobSha },
-          { path: S.PHOTOS_PATH, mode: "100644", type: "blob", sha: jb.sha }] } });
+        var tree = [{ path: opts.json, mode: "100644", type: "blob", sha: jb.sha }];
+        if (opts.file) tree.unshift({ path: opts.file.path, mode: "100644", type: "blob", sha: fileBlobSha });
+        return S.gh(token, repoPath("/git/trees"), { method: "POST", body: { base_tree: treeSha, tree: tree } });
       }).then(function (t) {
         return S.gh(token, repoPath("/git/commits"), { method: "POST", body: { message: message, tree: t.sha, parents: [commitSha] } });
       }).then(function (c) {
         return S.gh(token, repoPath("/git/refs/heads/" + S.BRANCH), { method: "PATCH", body: { sha: c.sha, force: false } });
-      }).then(function () { return photos; }, function (e) {
+      }).then(function () { return data; }, function (e) {
         if (left > 0 && (e.status === 409 || e.status === 422)) return attempt(left - 1);
         throw e;
       });
     }
     return attempt(3);
+  };
+
+  S.commitPhoto = function (token, key, fileName, blob, message) {
+    var parts = key.split(".");
+    return S.commitChanges(token, {
+      file: { path: "img/uploads/" + fileName, blob: blob },
+      json: S.PHOTOS_PATH,
+      mutate: function (photos) {
+        photos[parts[0]] = photos[parts[0]] || {};
+        photos[parts[0]][parts[1]] = "/img/uploads/" + fileName;
+      }
+    }, message);
+  };
+
+  S.LINKS_PATH = "content/links.json";
+  S.LINK_LABELS = { calendar: "Calendar" };
+  S.commitLink = function (token, key, url) {
+    return S.commitChanges(token, {
+      json: S.LINKS_PATH,
+      mutate: function (links) { links[key] = url; }
+    }, "Change " + (S.LINK_LABELS[key] || key) + " link (via site admin)");
+  };
+  S.normalizeUrl = function (raw) {
+    var u = String(raw || "").trim();
+    if (!u) return null;
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = "https://" + u;
+    try { var p = new URL(u); } catch (e) { return null; }
+    if (!/^https?:$/.test(p.protocol) || p.hostname.indexOf(".") < 0) return null;
+    return p.href;
   };
 
   /* ---------- image preparation: resize + compress in the browser ---------- */
@@ -231,6 +262,79 @@
         Object.keys(j.data[g]).forEach(function (n) { setSlot(g + "." + n, rawUrl(j.data[g][n])); });
       });
     }).catch(function (e) { if (e.status === 401) toast(friendly(e), "err"); });
+
+    /* ----- editable links (Calendar) ----- */
+    var links = {};
+    function applyLinks() {
+      document.querySelectorAll("a[data-link]").forEach(function (a) {
+        var u = links[a.getAttribute("data-link")];
+        if (u) a.href = u;
+      });
+    }
+    S.readJson(token, S.LINKS_PATH).then(function (j) { links = j.data || {}; applyLinks(); }).catch(function () {});
+
+    var modal = document.createElement("div");
+    modal.className = "svtc-modal";
+    modal.hidden = true;
+    modal.innerHTML = '<form class="svtc-modal-box" novalidate>' +
+      '<h3>Change <span class="lk-name">Calendar</span> link</h3>' +
+      '<p>Paste the web address the <b class="lk-name">Calendar</b> button should open (for example an Instagram post, Google Calendar or a PDF link). It updates everywhere the button appears.</p>' +
+      '<div class="field"><label for="svtc-link-url">Link address</label><input id="svtc-link-url" type="url" inputmode="url" placeholder="https://..." autocomplete="off" spellcheck="false"></div>' +
+      '<p class="svtc-modal-err" hidden></p>' +
+      '<div class="svtc-modal-actions"><button type="submit" class="btn sm">Save Link</button>' +
+      '<a class="btn sm ghost svtc-test" href="#" target="_blank" rel="noopener">Test Link</a>' +
+      '<button type="button" class="btn sm ghost svtc-cancel">Cancel</button></div></form>';
+    document.body.appendChild(modal);
+    var mForm = modal.querySelector("form"), mInput = modal.querySelector("input"), mErr = modal.querySelector(".svtc-modal-err"),
+        mSave = modal.querySelector('button[type="submit"]'), mTest = modal.querySelector(".svtc-test"), linkKey = null;
+    function closeModal() { modal.hidden = true; linkKey = null; }
+    function openModal(key) {
+      linkKey = key;
+      var label = S.LINK_LABELS[key] || key;
+      modal.querySelectorAll(".lk-name").forEach(function (s) { s.textContent = label; });
+      var cur = links[key] || (document.querySelector('a[data-link="' + key + '"]') || {}).href || "";
+      mInput.value = cur; mErr.hidden = true; mSave.disabled = false; mSave.textContent = "Save Link";
+      modal.hidden = false; setTimeout(function () { mInput.focus(); mInput.select(); }, 30);
+    }
+    modal.querySelector(".svtc-cancel").addEventListener("click", closeModal);
+    mInput.addEventListener("input", function () { mErr.hidden = true; });
+    modal.addEventListener("click", function (e) { if (e.target === modal) closeModal(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modal.hidden) closeModal(); });
+    mTest.addEventListener("click", function (e) {
+      var u = S.normalizeUrl(mInput.value);
+      if (!u) { e.preventDefault(); mErr.textContent = "That doesn't look like a web address. It should look like https://..."; mErr.hidden = false; return; }
+      mTest.href = u;
+    });
+    mForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var u = S.normalizeUrl(mInput.value), key = linkKey;
+      if (!u) { mErr.textContent = "That doesn't look like a web address. It should look like https://..."; mErr.hidden = false; return; }
+      mErr.hidden = true; mSave.disabled = true; mSave.textContent = "Saving...";
+      S.commitLink(token, key, u).then(function (data) {
+        links = data; applyLinks(); closeModal();
+        toast("Saved! The " + (S.LINK_LABELS[key] || key) + " button now opens the new link (live site updates in about a minute).", "ok");
+      }).catch(function (err) {
+        mErr.textContent = friendly(err); mErr.hidden = false; mSave.disabled = false; mSave.textContent = "Save Link";
+      });
+    });
+
+    // "Edit link" buttons next to each editable link, plus one in the admin bar
+    document.querySelectorAll("a[data-link]").forEach(function (a) {
+      var key = a.getAttribute("data-link");
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "edit-link" + (a.classList.contains("promo") ? " on-card" : "");
+      b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Edit link</span>';
+      b.title = "Change where the " + (S.LINK_LABELS[key] || key) + " link goes";
+      b.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); openModal(key); });
+      if (a.classList.contains("promo")) { a.style.position = "relative"; a.appendChild(b); }
+      else a.insertAdjacentElement("afterend", b);
+    });
+    var barBtn = document.createElement("button");
+    barBtn.type = "button"; barBtn.className = "admin-cal";
+    barBtn.textContent = "Change Calendar Link";
+    barBtn.addEventListener("click", function () { openModal("calendar"); });
+    bar.querySelector(".admin-logout").insertAdjacentElement("beforebegin", barBtn);
 
     input.addEventListener("change", function () {
       var file = input.files && input.files[0], key = currentKey;
