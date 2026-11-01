@@ -17,6 +17,8 @@
   fetch("content/photos.json", { cache: "no-cache" })
     .then(function (r) { return r.ok ? r.json() : {}; })
     .then(function (data) {
+      // In owner admin mode, js/admin.js loads the newest photos straight from the repo instead.
+      try { if (sessionStorage.getItem("svtc_admin")) return; } catch (e) {}
       document.querySelectorAll("img[data-photo]").forEach(function (el) {
         var u = fix(get(data, el.getAttribute("data-photo")));
         if (u && el.getAttribute("src") !== u) el.src = u;

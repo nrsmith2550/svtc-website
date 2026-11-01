@@ -9,25 +9,52 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
+<script src="../js/admin.js" defer></script>
 </head>
-<body style="background:#111">
+<body data-admin-page style="background:#111">
 <header class="nav"><div class="wrap">
   <a class="brand" href="../index.html"><img src="../img/uploads/logo.png" alt="Silent Victory Training Center logo"><span>Silent Victory<small>Training Center</small></span></a>
   <a class="btn sm ghost" href="../index.html" style="margin-left:auto">&larr; Back to Site</a>
 </div></header>
 <section class="block"><div class="wrap">
-  <div class="admin-box">
+  <form class="admin-box form" id="login" autocomplete="on">
     <div class="eyebrow">Owner Area</div>
-    <h1>Manage Site Photos</h1>
-    <p>Sign in to change any photo on the website. Every picture is listed by page and section, for example <b>Home page &rarr; Top banner</b>.</p>
-    <ol>
-      <li>Click <b>Owner Login</b> below and sign in with the email you were invited with (or your GitHub account).</li>
-      <li>Open <b>svtc-website</b>, then <b>Website Photos</b>.</li>
-      <li>Find the photo you want to change, click it, and upload a new picture.</li>
-      <li>Click <b>Save</b>. The live site updates in about a minute.</li>
-    </ol>
-    <a class="btn" href="https://app.pagescms.org/" target="_blank" rel="noopener">Owner Login <span class="arr">&rarr;</span></a>
-  </div>
+    <h1>Owner Login</h1>
+    <p>Log in to open the admin version of the website, where every photo has a <b>Change image</b> button.</p>
+    <div class="alert err" id="err"></div>
+    <div class="field"><label for="user">Username</label><input id="user" name="username" autocomplete="username" required></div>
+    <div class="field"><label for="pass">Password</label><input id="pass" name="password" type="password" autocomplete="current-password" required></div>
+    <button class="btn" type="submit" id="go">Log In <span class="arr">&rarr;</span></button>
+    <p class="admin-small" id="loggedin" hidden>You're already logged in. <a href="../index.html">Open admin mode &rarr;</a></p>
+    <p class="admin-small">First time? <a href="setup.html">Set up the owner login</a>.</p>
+  </form>
 </div></section>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var S = window.SVTC, f = document.getElementById("login"), err = document.getElementById("err"), go = document.getElementById("go");
+  if (S.session.get()) document.getElementById("loggedin").hidden = false;
+  function fail(msg) { err.textContent = msg; err.style.display = "block"; go.disabled = false; go.firstChild.textContent = "Log In "; }
+  f.addEventListener("submit", function (e) {
+    e.preventDefault();
+    err.style.display = "none"; go.disabled = true; go.firstChild.textContent = "Checking... ";
+    var user = document.getElementById("user").value, pass = document.getElementById("pass").value;
+    S.gh(null, "/repos/" + S.REPO + "/contents/" + S.KEY_PATH + "?ref=" + S.BRANCH)
+      .then(function (d) { return JSON.parse(new TextDecoder().decode(S.unb64(d.content))); })
+      .catch(function (e) {
+        throw new Error(e.status === 404 ? "The owner login hasn't been set up yet. Use the setup link below." : "Couldn't reach the login service. Check your internet and try again.");
+      })
+      .then(function (blob) {
+        return S.decryptToken(user, pass, blob).catch(function () { throw new Error("Wrong username or password."); });
+      })
+      .then(function (token) {
+        return S.gh(token, "/repos/" + S.REPO).then(function () { return token; }, function (e) {
+          throw new Error(e.status === 401 ? "Your login key has expired. Please run setup again to renew it." : "Login worked, but the website files couldn't be reached. Please try again.");
+        });
+      })
+      .then(function (token) { S.session.set(token); location.href = "../index.html"; })
+      .catch(function (e) { fail(e.message); });
+  });
+});
+</script>
 </body>
 </html>

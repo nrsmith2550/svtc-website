@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Silent Victory Training Center | Owner Login Setup</title>
+<link rel="icon" href="../img/uploads/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<script src="../js/admin.js" defer></script>
+</head>
+<body data-admin-page style="background:#111">
+<header class="nav"><div class="wrap">
+  <a class="brand" href="../index.html"><img src="../img/uploads/logo.png" alt="Silent Victory Training Center logo"><span>Silent Victory<small>Training Center</small></span></a>
+  <a class="btn sm ghost" href="index.html" style="margin-left:auto">Owner Login</a>
+</div></header>
+<section class="block"><div class="wrap">
+  <form class="admin-box form" id="setup" autocomplete="off">
+    <div class="eyebrow">Website Manager Only</div>
+    <h1>Owner Login Setup</h1>
+    <p>Do this once (and again whenever the access key expires or you want to change the password). Everything happens in this browser; the key and password are never sent anywhere except the encrypted key, which is saved to the website.</p>
+    <ol>
+      <li>Create a GitHub access key: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener"><b>open GitHub &rarr;</b></a><br>
+        Name it <b>Silent Victory site admin</b>. Under <b>Repository access</b> choose <b>Only select repositories</b> &rarr; <b>svtc-website</b>.
+        Under <b>Permissions &rarr; Repository permissions</b> set <b>Contents</b> to <b>Read and write</b>. Then click <b>Generate token</b> and copy it.</li>
+      <li>Paste it below, choose the owner's username and password, and click <b>Save Login</b>.</li>
+    </ol>
+    <div class="alert err" id="err"></div>
+    <div class="alert ok" id="ok"></div>
+    <div class="field"><label for="token">GitHub access key</label><input id="token" type="password" autocomplete="off" spellcheck="false" required placeholder="github_pat_..."></div>
+    <div class="field"><label for="user">Owner username</label><input id="user" autocomplete="off" required placeholder="e.g. shane"></div>
+    <div class="row2">
+      <div class="field"><label for="pass">Owner password</label><input id="pass" type="password" autocomplete="new-password" required minlength="10"></div>
+      <div class="field"><label for="pass2">Confirm password</label><input id="pass2" type="password" autocomplete="new-password" required minlength="10"></div>
+    </div>
+    <p class="admin-small">Use at least 10 characters. A longer password (like a short phrase) keeps the login safer.</p>
+    <button class="btn" type="submit" id="go">Save Login <span class="arr">&rarr;</span></button>
+  </form>
+</div></section>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var S = window.SVTC, f = document.getElementById("setup"), err = document.getElementById("err"), ok = document.getElementById("ok"), go = document.getElementById("go");
+  function fail(msg) { err.textContent = msg; err.style.display = "block"; go.disabled = false; go.firstChild.textContent = "Save Login "; }
+  f.addEventListener("submit", function (e) {
+    e.preventDefault();
+    err.style.display = ok.style.display = "none";
+    var token = document.getElementById("token").value.trim(), user = document.getElementById("user").value.trim(),
+        pass = document.getElementById("pass").value, pass2 = document.getElementById("pass2").value;
+    if (!token || !user) return fail("Please fill in every field.");
+    if (pass.length < 10) return fail("The password needs at least 10 characters.");
+    if (pass !== pass2) return fail("The two passwords don't match.");
+    go.disabled = true; go.firstChild.textContent = "Saving... ";
+    var path = "/repos/" + S.REPO + "/contents/" + S.KEY_PATH;
+    S.gh(token, "/repos/" + S.REPO)
+      .catch(function (e) { throw new Error(e.status === 401 ? "GitHub didn't accept that access key. Check you copied all of it." : "That access key can't open the svtc-website repository. Make sure you selected it under Repository access."); })
+      .then(function () { return S.gh(token, path + "?ref=" + S.BRANCH).then(function (d) { return d.sha; }, function (e) { if (e.status === 404) return null; throw e; }); })
+      .then(function (sha) {
+        return S.encryptToken(user, pass, token).then(function (blob) {
+          var body = { message: "Update owner login (encrypted key)", branch: S.BRANCH,
+                       content: btoa(JSON.stringify(blob, null, 2) + "\n") };
+          if (sha) body.sha = sha;
+          return S.gh(token, path, { method: "PUT", body: body });
+        });
+      })
+      .catch(function (e) { if (e.status === 403) throw new Error("The access key needs Contents set to Read and write."); throw e; })
+      .then(function () {
+        S.session.set(token);
+        f.querySelectorAll("input").forEach(function (i) { i.value = ""; });
+        ok.innerHTML = 'Saved! The owner can now log in with that username and password. <a href="../index.html">Open admin mode &rarr;</a>';
+        ok.style.display = "block"; go.disabled = false; go.firstChild.textContent = "Save Login ";
+      })
+      .catch(function (e) { fail(e.message); });
+  });
+});
+</script>
+</body>
+</html>
