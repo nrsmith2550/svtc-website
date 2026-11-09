@@ -406,3 +406,18 @@ html.ph-wait [data-photo-bg]{background-image:none!important}
   .mm-opt b{font-size:21px}
   .mm-actions{grid-template-columns:1fr}
 }
+
+/* ---------- Mobile hero: photo band on top, copy on solid black (no text over faces) ---------- */
+@media (max-width:820px){
+  .hero{display:block;min-height:0;background-color:#000;background-size:100% auto;background-position:center top;padding-top:calc(min(100vw,820px) * .62)}
+  .hero:before{background:linear-gradient(180deg,rgba(0,0,0,0) 0,rgba(0,0,0,0) calc(min(100vw,820px) * .34),rgba(0,0,0,.75) calc(min(100vw,820px) * .52),#000 calc(min(100vw,820px) * .64))}
+  .hero .wrap,.hero-split{padding-top:0;margin-top:-56px}
+  .hero .wrap{padding-bottom:44px}
+  .hero h1{font-size:clamp(46px,13vw,72px);margin:14px 0 16px}
+  .hero p.lede{font-size:16px;color:#d6d6d6}
+  .hero .ctas{display:grid;grid-template-columns:1fr;gap:10px}
+  .hero .ctas .btn{justify-content:center}
+  .page-hero{padding-top:calc(min(100vw,820px) * .5)}
+  .page-hero:before{background:linear-gradient(180deg,rgba(0,0,0,.1) 0,rgba(0,0,0,.2) calc(min(100vw,820px) * .3),#000 calc(min(100vw,820px) * .52))}
+  .page-hero .wrap{margin-top:-40px}
+}
